@@ -88,11 +88,17 @@ categories:
 - `preferredDuringSchedulingIgnoredDuringExecution`，空`topologyKey`被解读成`kubernetes.io/hostname`, `failure-domain.beta.kubernetes.io/zone` and `failure-domain.beta.kubernetes.io/region`的组合;
 
 - 除了上面几种情况，`topologyKey`可以是任何正确的标签；
-### 更多使用场景
+
+  ### 更多使用场景
+
   结合各种资源RS，StatefulSet，Deployment 等等可以实现一些更高级的功能。
-#### 协同调度到相同节点上
-##### 场景一：用podAntiAffinity调度redis的pod副本
+
+  #### 协同调度到相同节点上
+
+  ##### 场景一：用podAntiAffinity调度redis的pod副本
+
 为了redis能更好的使用内存，想要redis尽可能的能分配在不同的节点上。
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
