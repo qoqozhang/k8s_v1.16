@@ -1,0 +1,77 @@
+# kubernets组件
+
+ ![Components of Kubernetes](https://d33wubrfki0l68.cloudfront.net/817bfdd83a524fed7342e77a26df18c87266b8f4/3da7c/images/docs/components-of-kubernetes.png) 
+
+- 一个集群至少有一个node和一个master
+
+- node部署pods，master管理node和pods，多个master提供了集群的高可用和容错
+
+  
+
+## master 组件
+
+- kube-apiserver
+  - 提供了管理的前端API
+  - 支持横向扩展，部署多个kube-apiserver 负载
+- etcd
+  - 用于存储k8s集群的数据
+  - 高可用，一致性
+  - 建议做备份
+- kube-schechuler
+  - 执行pods的创建调度
+- kube-controller-manager
+  - master节点运行controller
+  - controller是一个独立的程序
+  - controller功能
+    - node管理，发现和响应节点故障
+    - 复制管理，相应和维护当前pods的数量
+    - 对象管理，service和pod管理
+    - 服务账号和Token管理，为新的namespace创建默认的账号和API访问token
+
+## Node 组件
+
+- kubelet
+  - 运行在node上的一种agent
+  - 仅管理通过多种机制创建的pods，监视通过pod创建的容器的状态。对非k8s创建的容器不做管理
+- kube-proxy
+  - 运行在node上的网络代理工具
+  - 维护node上的网络规则，这些网络规则管理了pods的网络通信
+  - 工作在包过滤层
+
+- container runtime
+  - 用于容器运行的软件，k8s支持docker，containered，cri-o，rktlet 
+
+## 插件
+
+使用这些插件可以丰富集群功能，插件工作在命名空间`kube-system`内。
+
+- DNS
+- Web UI (Dashboard)
+- Container Resource Monitoring
+- Cluster-level Logging
+
+# API版本
+
+1.  Alpha 		 v1alpha1 
+2.  Beta  	       v2beta3 
+3.  Stable  	     v11
+
+# Node controller
+
+node controller在 node生命周期种的作用：
+
+1. node注册成功以后，分配一个CIDR给node；
+2. controller内部的列表添加node；
+3. 使用`NodeStatus`监视node的健康状态；
+
+## 健康状态检查机制
+
+​	1.13版本（包含1.13）之前使用 `NodeStatus` 监控node，从1.14版本开始默认使用 `Node lease `监控node。
+
+​	当`node lease`启用以后，每个节点分配一个`Lease`对象在`kube-node-lease`命名空间中，周期性的更新节点状态，同时也会继续使用`NodeStatus`作为健康心跳。
+
+​	`node lease` 会频繁的刷新状态给controller，而`NodeStatus` 只有在一些状态发生变化或者达到足够的时间(默认1分钟，使用` --node-monitor-period`配置时间)才会上报状态，如果`NodeStatus`在40秒之内没有收到应答则会把node设置为`ConditionUnknown`状态，5分钟以后把所有pods转移。
+
+​	`node lease`比`NodeStatus`轻量级很多。
+## 什么是controller
+ 一句话，一种控制集群的资源达到期望运行状态的机制，称为controler，或者说也叫资源的控制器，一个pod，一个service都属于资源。
